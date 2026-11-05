@@ -27,7 +27,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <a className="button-pill" href="#work">Explore my work <span>↓</span></a>
-            <a className="text-link" href="https://github.com/Adityachoudhary08" target="_blank" rel="noreferrer">Start a conversation <span>↗</span></a>
+            <a className="text-link" href="https://www.linkedin.com/in/aditya-choudhary-001ab332a/" target="_blank" rel="noreferrer">Start a conversation <span>↗</span></a>
           </div>
         </div>
 

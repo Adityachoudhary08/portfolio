@@ -1,12 +1,5 @@
-import TextReveal from "@/components/TextReveal";
-
+import AboutExperience from "@/components/AboutExperience";
 
 export default function Page() {
-    return (
-       <div>
-        <TextReveal>
-            <h1 className="text-[5rem]">About Section</h1>
-        </TextReveal>
-       </div>
-    );
+  return <AboutExperience />;
 }

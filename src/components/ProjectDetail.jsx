@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function ProjectDetail({ project }) {
+  const { theme } = useTheme();
   const heroImage = project.heroImage || project.coverImage;
   const slides = [
     { src: heroImage, type: "HERO" },
@@ -16,16 +19,19 @@ export default function ProjectDetail({ project }) {
   const showImage = (index) => setActiveIndex((index + slides.length) % slides.length);
 
   return (
-    <main className="project-detail-page">
+    <main className="project-detail-page" data-theme={theme}>
       <header className="project-detail-nav">
         <nav className="project-detail-menu" aria-label="Project navigation">
           <Link className="project-detail-menu__home" href="/">Home</Link>
           <Link href="/#work">Projects</Link>
           <Link href="/about">About</Link>
         </nav>
-        <a className="project-detail-contact" href="https://github.com/Adityachoudhary08" target="_blank" rel="noreferrer">
-          <span aria-hidden="true">↗</span> Contact
-        </a>
+        <div className="project-detail-tools">
+          <ThemeToggle className="project-theme-toggle" />
+          <Link className="project-detail-contact" href="/#contact">
+            <span aria-hidden="true">↗</span> Contact
+          </Link>
+        </div>
       </header>
 
       <section className="project-detail-layout" aria-labelledby="project-title">

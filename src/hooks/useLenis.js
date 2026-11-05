@@ -13,6 +13,7 @@ export default function useLenis() {
       duration: 1.2,
       smoothWheel: true,
       smoothTouch: false,
+      autoRaf: false,
     });
 
     // Keep ScrollTrigger in sync with Lenis

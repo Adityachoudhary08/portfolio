@@ -1,7 +1,9 @@
 
 import Navbar from "@/components/Navbar";
 import "./globals.css";
+import Footer from "@/components/Footer";
 import SmoothScroller from "@/components/SmoothScroller";
+import ThemeProvider from "@/components/ThemeProvider";
 
 import { Inter, JetBrains_Mono } from "next/font/google";
 
@@ -29,11 +31,11 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${jetbrains_Mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-
-        <Navbar />
-        <SmoothScroller>
-          {children}
-        </SmoothScroller>
+        <ThemeProvider>
+          <Navbar />
+          <SmoothScroller>{children}</SmoothScroller>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );
