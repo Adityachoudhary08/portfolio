@@ -100,6 +100,9 @@ html.lenis body { height: auto; }
 .theme-toggle:hover { transform: translateY(-2px) rotate(-8deg); background: rgba(255,255,255,.15); border-color: rgba(214,155,112,.6); }
 .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .site-nav .theme-toggle { width: 38px; height: 38px; margin-left: -12px; }
+.animation-toggle { position: fixed; z-index: 10000; right: 24px; bottom: 24px; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--control-bg); color: var(--control-text); box-shadow: 0 8px 24px rgba(0,0,0,.2); backdrop-filter: blur(12px); cursor: pointer; font: 500 10px/1 var(--font-jetbrains-mono), monospace; letter-spacing: .06em; transition: transform .2s ease, border-color .2s ease, background-color .25s ease; }
+.animation-toggle:hover { transform: translateY(-2px); border-color: var(--control-hover-border); }
+.animation-toggle span { color: #d69b70; font-size: 15px; line-height: 1; }
 
 .home-page { background: #080808; color: #f1efec; }
 .hero {
@@ -560,6 +563,7 @@ html[data-theme="light"] .about-beyond__exploring-list span { color: rgba(21,21,
 .project-detail-page[data-theme="light"] .project-gallery__controls button:hover { background: #fff; }
 
 @media (max-width: 760px) {
+  .animation-toggle { right: 14px; bottom: 14px; }
   .project-detail-page[data-theme="light"] .project-detail-contact { box-shadow: 0 8px 25px rgba(14,24,29,.08); }
 }
 

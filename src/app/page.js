@@ -1,11 +1,41 @@
+"use client";
 
+import { useState } from "react";
 import InfiniteCarousel from "@/components/InfiniteCarousel";
 import HeroPortrait from "@/components/HeroPortrait";
+import { useTheme } from "@/components/ThemeProvider";
 import { projects } from "@/data/projects";
+import { FallingLeaves } from "falling-leaves/react";
+import { Snowfall } from "falling-snow/react";
 
 export default function Home() {
+  const { theme } = useTheme();
+  const [animationEnabled, setAnimationEnabled] = useState(true);
+
+  const toggleAnimation = () => {
+    setAnimationEnabled((enabled) => !enabled);
+  };
+
   return (
     <main className="home-page">
+      {animationEnabled && (
+        theme === "light" ? (
+          <FallingLeaves fullScreen shapes={["maple"]} />
+        ) : (
+          <Snowfall fullScreen flake="mixed" />
+        )
+      )}
+      <button
+        className="animation-toggle"
+        type="button"
+        onClick={toggleAnimation}
+        aria-pressed={animationEnabled}
+        aria-label={`${animationEnabled ? "Disable" : "Enable"} seasonal animation`}
+        title={`${animationEnabled ? "Disable" : "Enable"} seasonal animation`}
+      >
+        <span aria-hidden="true">{animationEnabled ? "✦" : "○"}</span>
+        {animationEnabled ? "Animation on" : "Animation off"}
+      </button>
       <section className="hero" id="top" aria-labelledby="hero-title">
         <div className="hero-topline">
           <span><i /> ENGINEER, DEVELOPER, BUILDER.</span>
