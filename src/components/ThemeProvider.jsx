@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import SpiderThemeTransition from "@/components/SpiderThemeTransition";
 
 const ThemeContext = createContext({ theme: "dark", toggleTheme: () => {} });
 
@@ -10,6 +11,8 @@ export function useTheme() {
 
 export default function ThemeProvider({ children }) {
   const [theme, setTheme] = useState("dark");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [targetTheme, setTargetTheme] = useState(null);
 
   useEffect(() => {
     try {
@@ -27,22 +30,42 @@ export default function ThemeProvider({ children }) {
     }
   }, []);
 
+  /* Called at the animation midpoint – this is when the theme actually flips */
+  const applyTheme = useCallback((newTheme) => {
+    setTheme(newTheme);
+    document.documentElement.dataset.theme = newTheme;
+    try {
+      window.localStorage.setItem("portfolio-theme", newTheme);
+    } catch {
+      // Keep the in-memory theme change when storage is unavailable.
+    }
+  }, []);
+
   const toggleTheme = useCallback(() => {
-    setTheme((currentTheme) => {
-      const nextTheme = currentTheme === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = nextTheme;
-      try {
-        window.localStorage.setItem("portfolio-theme", nextTheme);
-      } catch {
-        // Keep the in-memory theme change when storage is unavailable.
-      }
-      return nextTheme;
-    });
+    if (isTransitioning) return; // don't double-fire
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTargetTheme(nextTheme);
+    setIsTransitioning(true);
+  }, [theme, isTransitioning]);
+
+  const handleMidpoint = useCallback(() => {
+    if (targetTheme) applyTheme(targetTheme);
+  }, [targetTheme, applyTheme]);
+
+  const handleComplete = useCallback(() => {
+    setIsTransitioning(false);
+    setTargetTheme(null);
   }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
+      <SpiderThemeTransition
+        isTransitioning={isTransitioning}
+        targetTheme={targetTheme}
+        onMidpoint={handleMidpoint}
+        onComplete={handleComplete}
+      />
     </ThemeContext.Provider>
   );
 }
