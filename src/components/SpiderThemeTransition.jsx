@@ -50,6 +50,8 @@ function createSpider(canvasW, canvasH, targetTheme) {
     tx, ty,          // target (on screen)
     ex: 0, ey: 0,    // exit (computed later)
     x: sx, y: sy,
+    prevX: sx, prevY: sy,
+    angle: Math.atan2(ty - sy, tx - sx), // face toward target
     speed,
     legPhase,
     size: SPIDER_SIZE * (0.6 + Math.random() * 0.6),
@@ -71,11 +73,12 @@ function computeExit(sp, canvasW, canvasH) {
 
 /* ── Draw a single spider ─────────────────────────────── */
 function drawSpider(ctx, sp, time) {
-  const { x, y, size, legPhase } = sp;
+  const { x, y, size, legPhase, angle } = sp;
   const legAnim = Math.sin(time * 0.012 + legPhase);
 
   ctx.save();
   ctx.translate(x, y);
+  ctx.rotate(angle);
 
   const color = sp.targetTheme === "light" ? "#15151a" : "#e8e4df";
 
@@ -86,22 +89,29 @@ function drawSpider(ctx, sp, time) {
   for (let i = 0; i < 8; i++) {
     const side = i < 4 ? -1 : 1;
     const idx = i % 4;
-    const baseAngle = (side * (25 + idx * 22)) * (Math.PI / 180);
-    const wobble = legAnim * (0.12 + idx * 0.06) * side;
+    const baseAngle = (side * (30 + idx * 18)) * (Math.PI / 180);
+    const wobble = legAnim * (0.18 + idx * 0.08) * side;
     const segLen = LEG_LENGTH * (size / SPIDER_SIZE);
 
     // first segment (from body)
-    const mx = Math.cos(baseAngle + wobble) * segLen * 0.7;
-    const my = Math.sin(baseAngle + wobble) * segLen * 0.7;
-    // second segment ("knee" outward)
-    const ex = mx + Math.cos(baseAngle + wobble + side * 0.8) * segLen * 0.9;
-    const ey = my + Math.sin(baseAngle + wobble + side * 0.8) * segLen * 0.9;
+    const mx = Math.cos(baseAngle + wobble) * segLen * 0.65;
+    const my = Math.sin(baseAngle + wobble) * segLen * 0.65;
+    // second segment ("knee" outward + down)
+    const kneeAngle = baseAngle + wobble + side * 0.9;
+    const ex = mx + Math.cos(kneeAngle) * segLen * 0.95;
+    const ey = my + Math.sin(kneeAngle) * segLen * 0.95;
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(mx, my);
+    ctx.quadraticCurveTo(mx * 0.8, my * 1.1, mx, my);
     ctx.lineTo(ex, ey);
     ctx.stroke();
+
+    // tiny foot dot
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 0.8, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // body (two circles: abdomen + head)
@@ -156,6 +166,7 @@ export default function SpiderThemeTransition({ isTransitioning, targetTheme, on
       computeExit(sp, W, H);
       // stagger spawn
       sp.delay = Math.random() * 300;
+      sp.trail = []; // track positions for silk thread
       spiders.push(sp);
     }
 
@@ -196,8 +207,21 @@ export default function SpiderThemeTransition({ isTransitioning, targetTheme, on
 
         if (phase === "crawl_in" || phase === "hold") {
           const progress = ease(Math.min(spElapsed / PHASE_CRAWL_IN, 1));
+          sp.prevX = sp.x;
+          sp.prevY = sp.y;
           sp.x = sp.sx + (sp.tx - sp.sx) * progress;
           sp.y = sp.sy + (sp.ty - sp.sy) * progress;
+
+          // update angle to face movement direction
+          const dx = sp.x - sp.prevX;
+          const dy = sp.y - sp.prevY;
+          if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+            sp.angle = Math.atan2(dy, dx);
+          }
+          // store trail point for silk thread
+          if (progress > 0.05 && sp.trail.length < 120) {
+            sp.trail.push({ x: sp.x, y: sp.y });
+          }
 
           // paint trail on offscreen canvas
           if (progress > 0.15) {
@@ -211,13 +235,39 @@ export default function SpiderThemeTransition({ isTransitioning, targetTheme, on
           }
         } else if (phase === "crawl_out") {
           const outProgress = ease(Math.min((spElapsed - PHASE_CRAWL_IN) / PHASE_CRAWL_OUT, 1));
+          sp.prevX = sp.x;
+          sp.prevY = sp.y;
           sp.x = sp.tx + (sp.ex - sp.tx) * outProgress;
           sp.y = sp.ty + (sp.ey - sp.ty) * outProgress;
+
+          const dx = sp.x - sp.prevX;
+          const dy = sp.y - sp.prevY;
+          if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+            sp.angle = Math.atan2(dy, dx);
+          }
         }
       }
 
       // ── Draw paint layer ──
       ctx.drawImage(paintCanvas, 0, 0);
+
+      // ── Draw silk threads ──
+      const silkColor = targetTheme === "light"
+        ? "rgba(21, 21, 26, 0.08)"
+        : "rgba(255, 255, 255, 0.06)";
+      ctx.strokeStyle = silkColor;
+      ctx.lineWidth = 0.7;
+      for (const sp of spiders) {
+        if (sp.trail.length > 2 && phase !== "done") {
+          ctx.beginPath();
+          ctx.moveTo(sp.trail[0].x, sp.trail[0].y);
+          for (let i = 1; i < sp.trail.length; i++) {
+            ctx.lineTo(sp.trail[i].x, sp.trail[i].y);
+          }
+          ctx.lineTo(sp.x, sp.y);
+          ctx.stroke();
+        }
+      }
 
       // ── Draw spiders on top ──
       for (const sp of spiders) {
